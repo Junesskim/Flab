@@ -1,25 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Dict, List
-import pytz
 
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from sqlmodel import SQLModel, create_engine, Session, Field
-from databases import Database
+from fastapi import Depends, FastAPI, HTTPException, status
+from sqlmodel import Field, Session, SQLModel, create_engine
 
 app = FastAPI()
 
-# 게시글을 저장할 인메모리 데이터베이스
-post_data = []
-post_id_counter = 1
+seoul_timezone = timezone(timedelta(hours=9))
 
-seoul_timezone = pytz.timezone("Asia/Seoul") 
+database_url = "sqlite:///./API_Test.db"
 
-Database_URL = "sqlite:///./API_Test.db"
-
-database = Database(Database_URL)
 metadata = SQLModel.metadata
-engine = create_engine(Database_URL)
+engine = create_engine(database_url)
 metadata.create_all(engine)
 
 def get_session():
@@ -33,56 +25,48 @@ class Post(SQLModel, table=True):
     content: str
     created_at: str
 
-def create_post(post: Post):
-    global post_id_counter  
-    current_time = datetime.now(seoul_timezone)
-    post_id = post_id_counter
-    
-    post_data.append({
-        "post_id": post_id,
-        "author": post.author,
-        "title": post.title,
-        "content": post.content,
-        "created_at": current_time.strftime("%Y-%m-%d %H:%M:%S")
-    })
-    
-    post_id_counter += 1
-    return post_data[-1]
-
-def get_all_posts():
-    return post_data
-
-def update_post(post_id: int, author: str, title: str, content: str):
-    for post in post_data:
-        if post["post_id"] == post_id:
-            post["author"] = author
-            post["title"] = title
-            post["content"] = content
-            return post
-    raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
-
-def delete_post(post_id: int):
-    for index, post in enumerate(post_data):
-        if post["post_id"] == post_id:
-            deleted_post = post_data.pop(index)
-            return deleted_post
-    raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
-
-@app.post("/posts/", response_model=Post, status_code=201)
-def create_post_endpoint(post_id: int, author: str, title: str, content: str, session: Session = Depends(get_session)):
-    session.add(post_id)
+def create_post(post: Post, session: Session = Depends(Session)):
+    current_time = datetime.now(tz=seoul_timezone)
+    post.created_at = current_time.strftime("%Y-%m-%d %H:%M:%S")
+    session.add(post)
     session.commit()
-    session.refresh(post_id)
-    return create_post(post_id)
+    session.refresh(post)
+    
 
-@app.get("/posts/", response_model=List[Post], status_code=201)
-def get_all_post_endpoint(post_id: int, author: str, title: str, content: str):
-    return get_all_posts(post_id)
+def get_all_posts(session: Session = Depends(Session)) -> list[Post]:
+    posts = session.query(Post).all()
+    return posts
 
-@app.put("/posts/{post_id}", status_code=201)
-def update_post_endpoint(post_id: int, author: str, title: str, content: str):
-    return update_post(post_id, author, title, content)
+def update_post(post_id: int, post: Post, session: Session = Depends(Session)) -> Post:
+    existing_post = session.get(Post, post_id)
+    if existing_post is None:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    for var, value in vars(post).items():
+        setattr(existing_post, var, value)
+    session.commit()
+    session.refresh(existing_post)
+    return existing_post
 
-@app.delete("/posts/{post_id}", status_code=201)
-def delete_post_endpoint(post_id: int):
+def delete_post(post_id: int, session: Session = Depends(Session)) -> Post:
+    post = session.get(Post, post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    session.delete(post)
+    session.commit()
+    return post
+
+@app.post("/posts/", response_model=Post, status_code=status.HTTP_201_CREATED)
+def create_post(post: Post):
+    return create_post(post)
+
+@app.get("/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
+def get_all_post():
+    return get_all_posts()
+
+@app.put("/posts/{post_id}", status_code=status.HTTP_200_OK)
+def update_post(post_id: int, post: Post):
+    return update_post(post_id, post)
+
+@app.delete("/posts/{post_id}", status_code=status.HTTP_200_OK)
+def delete_post(post_id: int):
     return delete_post(post_id)
