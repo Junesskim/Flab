@@ -29,8 +29,8 @@
 from sqlmodel import SQLModel
 
 class Post(SQLModel, table=True):
-    id: int = None, primary_key=True, autoincrement=True
+    post_id: int = Field(default=None, primary_key=True)
     author: str
     title: str
     content: str
-    created_at: datetime = datetime.now()
+    created_at: str
