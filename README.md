@@ -1,6 +1,7 @@
 # FastAPI를 이용한 간단한 게시글 관리 REST API 서버
 
-이 프로젝트는 FastAPI 라이브러리를 사용하여 REST API 서버를 구현한 것입니다. 다음과 같은 기능을 제공합니다:
+이 프로젝트는 FastAPI 라이브러리를 사용하여 REST API 서버를 구현한 것입니다. 
+다음과 같은 기능을 제공합니다.
 
 ### 1. 게시글 생성 (Create Post)
 - POST 요청을 통해 새로운 게시글을 생성할 수 있습니다.
@@ -34,3 +35,4 @@ class Post(SQLModel, table=True):
     title: str
     content: str
     created_at: str
+```
