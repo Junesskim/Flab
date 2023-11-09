@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlmodel import Field, Session, SQLModel, create_engine
@@ -8,7 +8,7 @@ app = FastAPI()
 
 seoul_timezone = timezone(timedelta(hours=9))
 
-database_url = "sqlite:///./API_Test.db"
+database_url = "sqlite:///:memory:"
 
 metadata = SQLModel.metadata
 engine = create_engine(database_url)
@@ -19,13 +19,13 @@ def get_session():
         yield session
 
 class Post(SQLModel, table=True):
-    post_id: int = Field(default=None, primary_key=True)
+    post_id: Optional[int] = Field(default=None, primary_key=True)
     author: str
     title: str
     content: str
     created_at: str
 
-def create_post(post: Post, session: Session = Depends(Session)):
+def create_post(post: Post, session: Session = Depends(Session)) -> None:
     current_time = datetime.now(tz=seoul_timezone)
     post.created_at = current_time.strftime("%Y-%m-%d %H:%M:%S")
     session.add(post)
