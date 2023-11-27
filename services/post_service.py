@@ -18,11 +18,24 @@ def get_all_posts(session: Session) -> List[Post]:
     posts = session.query(Post).all()
     return posts
 
+def get_post(session: Session) -> Optional[Post]:
+    post = session.query(Post)
+    return post
+
 def update_post(session: Session, post_id: int, updated_post: Post) -> Optional[Post]:
     existing_post = session.get(Post, post_id)
     if existing_post:
         for var, value in vars(updated_post).items():
             setattr(existing_post, var, value)
+        session.commit()
+        session.refresh(existing_post)
+        return existing_post
+    
+def patch_post(session: Session, post_id: int, updated_fields: dict) -> Optional[Post]:
+    existing_post = session.get(Post, post_id)
+    if existing_post:
+        for field, value in updated_fields.items():
+            setattr(existing_post, field, value)
         session.commit()
         session.refresh(existing_post)
         return existing_post
