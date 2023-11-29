@@ -34,3 +34,23 @@
 - 게시글 아이디 (Id)를 이용하여 삭제할 수 있습니다.
 
   **Endpoint:** `DELETE /posts/{post_id}`
+
+## 6. 유저(User)에는 다음 내용이 포함되어야 합니다.
+    - 유저 아이디 (Id)
+    - 유저 비밀번호 (Password)
+        - 길이는 최소 8자 이상이여야 합니다.
+        - 대문자 1개 이상이 꼭 들어가야 합니다.
+    - 유저 닉네임 (Nickname)
+    - 유저 생성 날짜 (Created At)
+
+  **Endpoint:** `GET /users/{user_id}`  
+## 7. 댓글(Comment)에는 다음 내용이 포함되어야 합니다.
+    - 댓글 아이디 (Id)
+    - 작성자 아이디 (Author Id)
+        - 유저 아이디와 같습니다.
+    - 게시글 아이디 (Post Id)
+        - 이 댓글이 작성된 게시글의 Id 입니다.
+    - 댓글 내용 (Content)
+    - 댓글 생성 날짜 (Created At)
+
+  **Endpoint:** `GET /posts/{post_id}/comments/`    
