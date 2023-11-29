@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
-from domain.models import Post
-from services.post_service import create_post, get_all_posts, get_post, update_post, patch_post, delete_post
+from domain.models import Post, User, Comment
+from services.post_service import create_post, get_all_posts, get_post, update_post, patch_post, delete_post, get_post_by_id, get_posts_by_author_id
+from services.user_service import create_user, get_user_by_id, get_all_users
+from services.comment_service import create_comment, get_comment_by_id, get_comments_by_author_id, get_comments_by_post_id
 
 router = APIRouter()
 
@@ -38,3 +40,31 @@ def delete_post_api(post_id: int, session: Session = Depends(get_session)):
     if post is None:
         raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
     return post
+
+@router.post("/users/", response_model=User, status_code=status.HTTP_201_CREATED)
+def create_user_api(user: User, session: Session = Depends(get_session)):
+    create_user(session, user)
+    return user
+
+@router.get("/users/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
+def get_user_by_id_api(user_id: int, session: Session = Depends(get_session)):
+    user = get_user_by_id(session, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@router.get("/users/", response_model=List[User], status_code=status.HTTP_200_OK)
+def get_all_users_api(session: Session = Depends(get_session)):
+    return get_all_users(session)
+
+@router.get("/users/{user_id}/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
+def get_posts_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
+    return get_posts_by_author_id(session, user_id)
+
+@router.get("/users/{user_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
+def get_comments_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
+    return get_comments_by_author_id(session, user_id)
+
+@router.get("/posts/{post_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
+def get_comments_by_post_id_api(post_id: int, session: Session = Depends(get_session)):
+    return get_comments_by_post_id(session, post_id)

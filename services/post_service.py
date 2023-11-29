@@ -1,11 +1,13 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
+import pytz
 from typing import List, Optional
 
 from sqlmodel import Session
 
 from domain.models import Post
 
-seoul_timezone = timezone(timedelta(hours=9))
+# seoul_timezone = timezone(timedelta(hours=9))
+seoul_timezone = pytz.timezone('Asia/Seoul')
 
 def create_post(session: Session, post: Post) -> None:
     current_time = datetime.now(tz=seoul_timezone)
@@ -46,3 +48,9 @@ def delete_post(session: Session, post_id: int) -> Optional[Post]:
         session.delete(post)
         session.commit()
         return post
+
+def get_post_by_id(session: Session, post_id: int) -> Optional[Post]:
+    return session.get(Post, post_id)
+
+def get_posts_by_author_id(session: Session, author_id: int) -> List[Post]:
+    return session.query(Post).filter(Post.author_id == author_id).all()
