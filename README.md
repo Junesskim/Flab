@@ -54,3 +54,30 @@
 - 댓글 생성 날짜 (Created At)
 
   **Endpoint:** `GET /posts/{post_id}/comments/`    
+
+  ```mermaid
+  classDiagram
+    API --|> Service
+    Service --|> Domain
+        class API{
+        routes.py
+        create_post_api()
+        get_all_posts_api()
+        get_post_api()
+        patch_post_api()
+        update_post_api()
+        delete_post_api()
+    }
+    class Service{
+        post_service.py
+        create_post()
+        get_all_posts()
+        get_post()
+        patch_post()
+        update_post()
+        delete_post()
+    }
+    class Domain{
+        models.py
+    }
+  ```
