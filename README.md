@@ -55,6 +55,7 @@
 
   **Endpoint:** `GET /posts/{post_id}/comments/`    
 
+## 8. Layered Architecture
   ```mermaid
   classDiagram
     API --|> Service
