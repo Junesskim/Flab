@@ -18,7 +18,7 @@ def get_all_posts_api(session: Session = Depends(get_session)):
     return get_all_posts(session)
 
 @router.get("/posts/", response_model=Post, status_code=status.HTTP_200_OK)
-def get_all_posts_api(session: Session = Depends(get_session)):
+def get_post(session: Session = Depends(get_session)):
     return get_post(session)
 
 @router.put("/posts/{post_id}", response_model=Post, status_code=status.HTTP_200_OK)
@@ -50,18 +50,31 @@ def create_user_api(user: User, session: Session = Depends(get_session)):
 def get_user_by_id_api(user_id: int, session: Session = Depends(get_session)):
     user = get_user_by_id(session, user_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
     return user
 
 @router.get("/users/", response_model=List[User], status_code=status.HTTP_200_OK)
 def get_all_users_api(session: Session = Depends(get_session)):
     return get_all_users(session)
 
+@router.post("/comments/", response_model=Comment, status_code=status.HTTP_201_CREATED)
+def create_comment_api(comment: Comment, session: Session = Depends(Get_session)):
+    create_comment(session, comment)
+    return comment
+
 @router.get("/users/{user_id}/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
+def get_posts_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
+    return get_post_by_id(session, user_id)
+
+@router.get("/users/{author_id}/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
 def get_posts_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
     return get_posts_by_author_id(session, user_id)
 
-@router.get("/users/{user_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
+@router.get("/users/{id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
+def get_comments_by_id_api(user_id: int, session: Session = Depends(get_session)):
+    return get_comment_by_id(session, user_id)
+
+@router.get("/users/{author_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
 def get_comments_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
     return get_comments_by_author_id(session, user_id)
 

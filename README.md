@@ -58,8 +58,12 @@
 ## 8. Layered Architecture
   ```mermaid
   classDiagram
-    API --|> Service
-    Service --|> Domain
+    API --|> Post_Service
+    API --|> User_Service
+    API --|> Comment_Service
+    Post_Service --|> Domain
+    User_Service --|> Domain
+    Comment_Service --|> Domain
         class API{
         routes.py
         create_post_api()
@@ -68,8 +72,17 @@
         patch_post_api()
         update_post_api()
         delete_post_api()
+        create_user_api()
+        get_user_by_id_api()
+        get_all_users_api()
+        create_comment_api()
+        get_posts_by_user_id_api()
+        get_posts_by_author_id_api()
+        get_comments_by_id_api()
+        get_comments_by_author_id_api()
+        get_comments_by_post_id_api()
     }
-    class Service{
+    class Post_Service{
         post_service.py
         create_post()
         get_all_posts()
@@ -77,6 +90,19 @@
         patch_post()
         update_post()
         delete_post()
+    }
+    class User_Service{
+        user_service.py
+        create_user()
+        get_user_by_id()
+        get_all_users()
+    }
+    class Comment_Service{
+        comment_service.py
+        create_comment()
+        get_comment_by_id()
+        get_comments_by_author_id()
+        get_comments_by_post_id()
     }
     class Domain{
         models.py

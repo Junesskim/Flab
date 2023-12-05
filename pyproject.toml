@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fastapi"
+name = "Junesskim"
 version = "0.1.0"
 description = ""
 authors = ["Junesskim <aktpfkxl9891@naver.com>"]
@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 sqlmodel = "^0.0.11"
+fastapi = "^0.104.0"
 uvicorn = "^0.24.0.post1"
 
 
