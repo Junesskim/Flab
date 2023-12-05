@@ -50,7 +50,7 @@ pip install sqlmodel
 
   **Endpoint:** `DELETE /posts/{post_id}`
 
-### 6. 유저(User)에는 다음 내용이 포함되어야 합니다.
+### 6. 유저(User)
 - 유저 아이디 (Id)
 - 유저 비밀번호 (Password)
     - 길이는 최소 8자 이상이여야 합니다.
@@ -59,7 +59,7 @@ pip install sqlmodel
 - 유저 생성 날짜 (Created At)
 
   **Endpoint:** `GET /users/{user_id}`  
-### 7. 댓글(Comment)에는 다음 내용이 포함되어야 합니다.
+### 7. 댓글(Comment)
 - 댓글 아이디 (Id)
 - 작성자 아이디 (Author Id)
     - 유저 아이디와 같습니다.
