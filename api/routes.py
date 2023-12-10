@@ -1,5 +1,6 @@
+import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 
 from domain.models import Post, User, Comment
 from services.post_service import create_post, get_all_posts, get_post, update_post, patch_post, delete_post, get_post_by_id, get_posts_by_author_id
@@ -8,10 +9,30 @@ from services.comment_service import create_comment, get_comment_by_id, get_comm
 
 router = APIRouter()
 
+class CreatePostRequest(SQLModel):
+    title : str
+    decription : str
+    author_id : str
+    request_at : datetime
+
+class CreatePostResponse(SQLModel):
+    id: str
+    title: str
+    content: str
+    author_id: str
+    created_at : datetime
+
 @router.post("/posts/", response_model=Post, status_code=status.HTTP_201_CREATED)
-def create_post_api(post: Post, session: Session = Depends(get_session)):
-    create_post(session, post)
-    return post
+def create_post_api(request: CreatePostRequest, session: Session = Depends(get_session)) -> CreatePostResponse:
+    post = create_post(session, request)
+    
+    return CreatePostResponse(
+        id=post.id,
+        title=post.title,
+        content=post.content,
+        author_id=post.author_id,
+        created_at=post.created_at
+    )
 
 @router.get("/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
 def get_all_posts_api(session: Session = Depends(get_session)):
@@ -67,7 +88,7 @@ def get_posts_by_user_id_api(user_id: int, session: Session = Depends(get_sessio
     return get_post_by_id(session, user_id)
 
 @router.get("/users/{author_id}/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
-def get_posts_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
+def get_posts_by_author_id_api(user_id: int, session: Session = Depends(get_session)):
     return get_posts_by_author_id(session, user_id)
 
 @router.get("/users/{id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
@@ -75,7 +96,7 @@ def get_comments_by_id_api(user_id: int, session: Session = Depends(get_session)
     return get_comment_by_id(session, user_id)
 
 @router.get("/users/{author_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
-def get_comments_by_user_id_api(user_id: int, session: Session = Depends(get_session)):
+def get_comments_by_author_id_api(user_id: int, session: Session = Depends(get_session)):
     return get_comments_by_author_id(session, user_id)
 
 @router.get("/posts/{post_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)

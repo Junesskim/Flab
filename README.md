@@ -5,18 +5,9 @@
 
 ## 설치 사항
 ### 파이썬 설치
-```bash
-pip install python==3.10.0
-```
-### fastapi 설치
-```bash
-pip install fastapi
-```
+- Python >= 3.10
+- fastapi/ sqlmodel 등 필요한 라이브러리는 poetry 참고
 
-### sqlmodel 설치
-```bash
-pip install sqlmodel
-```
 ## API 요구사항
 ### 1. 게시글 생성 (Create Post)
 - POST 요청을 통해 새로운 게시글을 생성할 수 있습니다.
@@ -70,7 +61,7 @@ pip install sqlmodel
 
   **Endpoint:** `GET /posts/{post_id}/comments/`    
 
-## Layered Architecture
+## Architecture Diagram
   ```mermaid
   classDiagram
     API --|> Post_Service
