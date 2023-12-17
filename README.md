@@ -19,7 +19,7 @@ poetry install
 
   **Endpoint:** `POST /posts`
   ```
-  curl -X GET "http://localhost:8000/api/posts/" -H "accept: application/json"
+  curl -X POST "http://localhost:8000/api/posts/"
   ```
   
 ### 2. 게시글 조회 (Get Post)
@@ -27,12 +27,18 @@ poetry install
 - 게시글 아이디 (Id)를 이용하여 조회합니다.
 
   **Endpoint:** `GET /posts/{post_id}`
+  ```
+  curl -X GET "http://localhost:8000/api/posts/{post_id}"
+  ```
   
 ### 3. 게시글 목록 조회 (List Posts)
 - 모든 게시글을 조회할 수 있습니다.
 - 게시글의 목록을 반환합니다.
 
   **Endpoint:** `GET /posts`
+  ```
+  curl -X GET "http://localhost:8000/api/posts/"
+  ```
   
 ### 4. 게시글 수정 (Update Post)
 - 게시글 작성자만 해당 게시글을 수정할 수 있습니다.
@@ -40,13 +46,23 @@ poetry install
 - 요청 본문에는 수정할 제목과 내용이 포함되어야 합니다.
 
   **Endpoint:** `PUT /posts/{post_id}`
+  ```
+  curl -X PUT "http://localhost:8000/api/posts/{post_id}"
+  ```
 
-  
+### 5. 게시글 patch
+```
+curl -X PATCH "http://localhost:8000/api/posts/{post_id}"
+```
+
 ### 5. 게시글 삭제 (Delete Post)
 - 게시글 작성자만 해당 게시글을 삭제할 수 있습니다.
 - 게시글 아이디 (Id)를 이용하여 삭제할 수 있습니다.
 
   **Endpoint:** `DELETE /posts/{post_id}`
+  ```
+  curl -X DELETE "http://localhost:8000/api/posts/{post_id}"
+  ```
 
 ### 6. 유저(User)
 - 유저 아이디 (Id)
@@ -57,6 +73,9 @@ poetry install
 - 유저 생성 날짜 (Created At)
 
   **Endpoint:** `GET /users/{user_id}`  
+  ```
+  curl -X POST "http://localhost:8000/api/users/"
+  ```
 ### 7. 댓글(Comment)
 - 댓글 아이디 (Id)
 - 작성자 아이디 (Author Id)
@@ -67,6 +86,9 @@ poetry install
 - 댓글 생성 날짜 (Created At)
 
   **Endpoint:** `GET /posts/{post_id}/comments/`    
+  ```
+  curl -X POST "http://localhost:8000/api/comments/"
+  ```
 
 ## Architecture Diagram
   ```mermaid
