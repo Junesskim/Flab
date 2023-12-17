@@ -8,12 +8,19 @@
 - Python >= 3.10
 - fastapi/ sqlmodel 등 필요한 라이브러리는 poetry 참고
 
+```curl
+poetry install
+```
+
 ## API 요구사항
 ### 1. 게시글 생성 (Create Post)
 - POST 요청을 통해 새로운 게시글을 생성할 수 있습니다.
 - 요청 본문에는 게시글 작성자, 제목, 내용을 포함해야 합니다.
 
   **Endpoint:** `POST /posts`
+  ```
+  curl -X GET "http://localhost:8000/api/posts/" -H "accept: application/json"
+  ```
   
 ### 2. 게시글 조회 (Get Post)
 - 특정 게시글을 조회할 수 있습니다.
