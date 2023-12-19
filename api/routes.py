@@ -1,6 +1,6 @@
 import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session
 
 from domain.models import Post, User, Comment
 from services.post_service import create_post, get_all_posts, get_post, update_post, patch_post, delete_post, get_post_by_id, get_posts_by_author_id
@@ -9,13 +9,13 @@ from services.comment_service import create_comment, get_comment_by_id, get_comm
 
 router = APIRouter()
 
-class CreatePostRequest(SQLModel):
+class CreatePostRequest(BaseModel):
     title : str
     decription : str
     author_id : str
     request_at : datetime
 
-class CreatePostResponse(SQLModel):
+class CreatePostResponse(BaseModel):
     id: str
     title: str
     content: str
@@ -34,7 +34,7 @@ def create_post_api(request: CreatePostRequest, session: Session = Depends(get_s
         created_at=post.created_at
     )
 
-class GetAllPostsResponse(SQLModel):
+class GetAllPostsResponse(BaseModel):
     data : list[Post]
 
 @router.get("/posts/", response_model=List[Post], status_code=status.HTTP_200_OK)
@@ -44,7 +44,7 @@ def get_all_posts_api(session: Session = Depends(get_session)) -> GetAllPostsRes
         data= posts
     )
 
-class GetPostResponse(SQLModel):
+class GetPostResponse(BaseModel):
     data : Post
 
 @router.get("/posts/", response_model=Post, status_code=status.HTTP_200_OK)
@@ -54,32 +54,83 @@ def get_post(session: Session = Depends(get_session)) -> GetPostResponse:
         data=post
     )
 
+class UpdatePostResponse(BaseModel):
+    post_id:str
+    author:str
+    title:str
+    content:str
+    created_at:str
 
 @router.put("/posts/{post_id}", response_model=Post, status_code=status.HTTP_200_OK)
-def update_post_api(post_id: int, updated_post: Post, session: Session = Depends(get_session)):
+def update_post_api(post_id: int, updated_post: Post, session: Session = Depends(get_session)) -> UpdatePostResponse:
     post = update_post(session, post_id, updated_post)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
-    return post
+    
+    return UpdatePostResponse(
+        post_id=post.post_id,
+        author=post.author,
+        title=post.title,
+        content=post.content,
+        created_at=post.created_at
+    )
+
+class PatchPostResponse(BaseModel):
+    post_id:str
+    author:str
+    title:str
+    content:str
+    created_at:str
 
 @router.patch("/posts/{post_id}", response_model=Post, status_code=status.HTTP_200_OK)
-def patch_post_api(post_id: int, updated_fields: dict, session: Session = Depends(get_session)):
+def patch_post_api(post_id: int, updated_fields: dict, session: Session = Depends(get_session)) -> PatchPostResponse:
     post = patch_post(session, post_id, updated_fields)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
-    return post
+    
+    return PatchPostResponse(
+        post_id=post.post_id,
+        author=post.author,
+        title=post.title,
+        content=post.content,
+        created_at=post.created_at
+    )
+
+class DeletePostResponse(BaseModel):
+    post_id:str
+    author:str
+    title:str
+    content:str
+    created_at:str
 
 @router.delete("/posts/{post_id}", response_model=Post, status_code=status.HTTP_200_OK)
-def delete_post_api(post_id: int, session: Session = Depends(get_session)):
+def delete_post_api(post_id: int, session: Session = Depends(get_session)) -> DeletePostResponse:
     post = delete_post(session, post_id)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
-    return post
+    
+    return DeletePostResponse(
+        post_id=post.post_id,
+        author=post.author,
+        title=post.title,
+        content=post.content,
+        created_at=post.created_at
+    )
+
+class UserResponse(BaseModel):
+    id:int
+    nickname:str
+    created_at:str
 
 @router.post("/users/", response_model=User, status_code=status.HTTP_201_CREATED)
 def create_user_api(user: User, session: Session = Depends(get_session)):
     create_user(session, user)
-    return user
+    
+    return UserResponse(
+        id=user.id,
+        nickname=user.nickname,
+        created_at=user.created_at
+    )
 
 @router.get("/users/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
 def get_user_by_id_api(user_id: int, session: Session = Depends(get_session)):
