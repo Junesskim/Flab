@@ -123,7 +123,7 @@ class UserResponse(BaseModel):
     created_at:str
 
 @router.post("/users/", response_model=User, status_code=status.HTTP_201_CREATED)
-def create_user_api(user: User, session: Session = Depends(get_session)):
+def create_user_api(user: User, session: Session = Depends(get_session)) -> UserResponse:
     create_user(session, user)
     
     return UserResponse(
@@ -132,12 +132,18 @@ def create_user_api(user: User, session: Session = Depends(get_session)):
         created_at=user.created_at
     )
 
+GetUsercache= {}
+
 @router.get("/users/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
 def get_user_by_id_api(user_id: int, session: Session = Depends(get_session)):
-    user = get_user_by_id(session, user_id)
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
-    return user
+    if user_id in GetUsercache:
+        return GetUsercache[user_id]
+    else:
+        user = get_user_by_id(session, user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
+        GetUsercache[user_id] = user
+    return User
 
 @router.get("/users/", response_model=List[User], status_code=status.HTTP_200_OK)
 def get_all_users_api(session: Session = Depends(get_session)):
@@ -167,3 +173,11 @@ def get_comments_by_author_id_api(user_id: int, session: Session = Depends(get_s
 @router.get("/posts/{post_id}/comments/", response_model=List[Comment], status_code=status.HTTP_200_OK)
 def get_comments_by_post_id_api(post_id: int, session: Session = Depends(get_session)):
     return get_comments_by_post_id(session, post_id)
+
+
+@router.post("/users/login", response_model=dict, status_code=status.HTTP_200_OK)
+def login(user: User, session:Session = Depends(get_session)):
+
+    if dd: # 입력 아이디와 DB 아이디 동일 확인, 패스워드 동일 확인...
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="아이디 혹은 비밀번호가 일치하지 않습니다.")
+    return {}
