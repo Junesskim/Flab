@@ -7,7 +7,8 @@ from sqlmodel import Session
 from domain.models import Post
 
 # seoul_timezone = timezone(timedelta(hours=9))
-seoul_timezone = pytz.timezone('Asia/Seoul')
+seoul_timezone = pytz.timezone("Asia/Seoul")
+
 
 def create_post(session: Session, post: Post) -> None:
     current_time = datetime.now(tz=seoul_timezone)
@@ -16,13 +17,16 @@ def create_post(session: Session, post: Post) -> None:
     session.commit()
     session.refresh(post)
 
+
 def get_all_posts(session: Session) -> List[Post]:
     posts = session.query(Post).all()
     return posts
 
+
 def get_post(session: Session) -> Optional[Post]:
     post = session.query(Post)
     return post
+
 
 def update_post(session: Session, post_id: int, updated_post: Post) -> Optional[Post]:
     existing_post = session.get(Post, post_id)
@@ -32,7 +36,8 @@ def update_post(session: Session, post_id: int, updated_post: Post) -> Optional[
         session.commit()
         session.refresh(existing_post)
         return existing_post
-    
+
+
 def patch_post(session: Session, post_id: int, updated_fields: dict) -> Optional[Post]:
     existing_post = session.get(Post, post_id)
     if existing_post:
@@ -42,6 +47,7 @@ def patch_post(session: Session, post_id: int, updated_fields: dict) -> Optional
         session.refresh(existing_post)
         return existing_post
 
+
 def delete_post(session: Session, post_id: int) -> Optional[Post]:
     post = session.get(Post, post_id)
     if post:
@@ -49,8 +55,10 @@ def delete_post(session: Session, post_id: int) -> Optional[Post]:
         session.commit()
         return post
 
+
 def get_post_by_id(session: Session, post_id: int) -> Optional[Post]:
     return session.get(Post, post_id)
+
 
 def get_posts_by_author_id(session: Session, author_id: int) -> List[Post]:
     return session.query(Post).filter(Post.author_id == author_id).all()
