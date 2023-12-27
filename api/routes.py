@@ -6,12 +6,13 @@ from sqlmodel import Session
 
 from domain.models import Post, User, Comment
 from services.post_service import create_post, get_all_posts, get_post, update_post, patch_post, delete_post, get_post_by_id, get_posts_by_author_id
-from services.user_service import create_user, get_user_by_id, get_all_users
+from services.user_service import create_user, get_user_by_id, get_all_users, create_token, find_token_by_user_id, find_user_by_token, delete_user_token
 from services.comment_service import create_comment, get_comment_by_id, get_comments_by_author_id, get_comments_by_post_id
 
 router = APIRouter()
 
 class CreatePostRequest(BaseModel):
+    token: str
     title: str
     decription: str
     author_id: str
@@ -24,8 +25,12 @@ class CreatePostResponse(BaseModel):
     author_id: str
     created_at : datetime
 
-@router.post("/posts/", response_model=Post, status_code=status.HTTP_201_CREATED)
+@router.post("/posts/", response_model=CreatePostResponse, status_code=status.HTTP_201_CREATED)
 def create_post_api(request: CreatePostRequest, session: Session = Depends(get_session)) -> CreatePostResponse:
+    token = request.token
+    user = find_user_by_token(token, session)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="인증되지 않은 사용자 입니다!")
     post = create_post(session, request)
     
     return CreatePostResponse(
@@ -57,6 +62,7 @@ def get_post(session: Session = Depends(get_session)) -> GetPostResponse:
     )
 
 class UpdatedPostRequest(BaseModel):
+    token: str
     title: Optional[str] = None
     content: Optional[str] = None
 
@@ -69,11 +75,17 @@ class UpdatePostResponse(BaseModel):
 
 @router.put("/posts/{post_id}", response_model=UpdatePostResponse, status_code=status.HTTP_200_OK)
 def update_post_api(post_id: int, updated_post: UpdatedPostRequest, session: Session = Depends(get_session)) -> UpdatePostResponse:
-    fields = updated_post.dict()
-    post = update_post(session, post_id, fields)
+    post = session.get(Post, post_id)
+    token = UpdatedPostRequest.token
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
     
+    user = find_user_by_token(token, session)
+    if user.id != post.author_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="본인의 게시글만 수정할 수 있습니다.")
+
+    fields = updated_post.dict()
+    post = update_post(session, post_id, fields)
     return UpdatePostResponse(
         post_id=post.post_id,
         author=post.author,
@@ -83,6 +95,7 @@ def update_post_api(post_id: int, updated_post: UpdatedPostRequest, session: Ses
     )
 
 class PatchPostRequest(BaseModel):
+    token: str
     title: Optional[str] = None
     content: Optional[str] = None
 
@@ -95,11 +108,18 @@ class PatchPostResponse(BaseModel):
 
 @router.patch("/posts/{post_id}", response_model=PatchPostResponse, status_code=status.HTTP_200_OK)
 def patch_post_api(post_id: int, updated_fields: PatchPostRequest, session: Session = Depends(get_session)) -> PatchPostResponse:
-    fields = updated_fields.dict(exclude_unset=True)
-    post = patch_post(session, post_id, fields)
+    post = session.get(Post, post_id)
+    token = UpdatedPostRequest.token
+
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
     
+    user = find_user_by_token(token, session)
+    if user.id != post.author_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="본인의 게시글만 수정할 수 있습니다.")
+
+    fields = updated_fields.dict(exclude_unset=True)
+    post = patch_post(session, post_id, fields)
     return PatchPostResponse(
         post_id=post.post_id,
         author=post.author,
@@ -109,6 +129,7 @@ def patch_post_api(post_id: int, updated_fields: PatchPostRequest, session: Sess
     )
 
 class DeletePostResponse(BaseModel):
+    token: str
     post_id:str
     author:str
     title:str
@@ -117,10 +138,17 @@ class DeletePostResponse(BaseModel):
 
 @router.delete("/posts/{post_id}", response_model=DeletePostResponse, status_code=status.HTTP_200_OK)
 def delete_post_api(post_id: int, session: Session = Depends(get_session)) -> DeletePostResponse:
-    post = delete_post(session, post_id)
+    post = session.get(Post, post_id)
+    token = UpdatedPostRequest.token
+
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="게시글을 찾을 수 없습니다.")
     
+    user = find_user_by_token(token, session)
+    if user.id != post.author_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="본인의 게시글만 수정할 수 있습니다.")
+
+    post = delete_post(session, post_id)
     return DeletePostResponse(
         post_id=post.post_id,
         author=post.author,
@@ -269,9 +297,26 @@ def get_comments_by_post_id_api(post_id: int, session: Session = Depends(get_ses
         get_comments_by_post_id_cache[post_id] = post
     return post
 
+class LoingRequest(BaseModel):
+    id: str
+    password: str
 
-@router.post("/users/login", response_model=dict, status_code=status.HTTP_200_OK)
-def login(user: User, session:Session = Depends(get_session)):
-    if dd: # 입력 아이디와 DB 아이디 동일 확인, 패스워드 동일 확인...
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="아이디 혹은 비밀번호가 일치하지 않습니다.")
-    return {}
+class LoginResponse(BaseModel):
+    token: str
+
+user_tokens_cache = {}
+
+@router.post("/users/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
+def login(request: LoingRequest, session: Session = Depends(get_session)) -> LoginResponse:
+    user = session.get(User, request.id)
+    if (user is None) or (user.password != request.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="인증 실패입니다!")
+    
+    # 기존 토큰 삭제
+    delete_user_token(request.id)
+    
+    # 새로운 토큰 생성
+    token = create_token()
+    user_tokens_cache[request.id] = token
+    
+    return LoginResponse(token=token)
