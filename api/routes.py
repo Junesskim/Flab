@@ -1,8 +1,10 @@
-import datetime
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from graphviz import ENGINES
 from sqlmodel import Session
+from pydantic import BaseModel
 
 from domain.models import Post, User, Comment
 from services.post_service import (
@@ -34,10 +36,15 @@ from services.comment_service import (
 router = APIRouter()
 
 
+def get_session():
+    with Session(ENGINES) as session:
+        yield session
+
+
 class CreatePostRequest(BaseModel):
     token: str
     title: str
-    decription: str
+    description: str
     author_id: str
     request_at: datetime
 
@@ -306,7 +313,7 @@ class CreateCommentResponse(BaseModel):
     status_code=status.HTTP_201_CREATED,
 )
 def create_comment_api(
-    comment: CreateCommentRequest, session: Session = Depends(Get_session)
+    comment: CreateCommentRequest, session: Session = Depends(get_session)
 ) -> CreateCommentResponse:
     new_comment = Comment(
         author_id=comment.author_id, post_id=comment.post_id, content=comment.content
@@ -315,7 +322,7 @@ def create_comment_api(
     create_comment(session, new_comment)
 
     return CreateCommentResponse(
-        comment_id=new_comment.comment_id,
+        comment_id=new_comment.id,
         author_id=new_comment.author_id,
         post_id=new_comment.post_id,
         content=new_comment.content,

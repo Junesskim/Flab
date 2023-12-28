@@ -3,6 +3,7 @@ from typing import List, Optional
 import uuid
 
 from sqlmodel import Session
+from pydantic import BaseModel
 
 from domain.models import User
 

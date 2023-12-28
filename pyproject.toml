@@ -10,6 +10,8 @@ python = "^3.10"
 sqlmodel = "^0.0.11"
 fastapi = "^0.104.0"
 uvicorn = "^0.24.0.post1"
+pytz = "^2023.3.post1"
+datetime = "^5.4"
 
 
 [build-system]
