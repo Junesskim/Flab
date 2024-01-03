@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from graphviz import ENGINES
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session as SQLAlchemySession
 from sqlmodel import Session
 from pydantic import BaseModel
 
@@ -35,11 +36,17 @@ from services.comment_service import (
 
 router = APIRouter()
 
+# 데이터베이스 연결 설정
+DATABASE_URL = "sqlite:///example.db"
+engine = create_engine(DATABASE_URL)
 
-def get_session():
+# ENGINES 변수 설정
+ENGINES = engine
+
+# SQLModel의 Session 클래스를 사용하도록 수정
+def get_session() -> SQLAlchemySession:
     with Session(ENGINES) as session:
-        yield session
-
+        return session
 
 class CreatePostRequest(BaseModel):
     token: str
@@ -435,7 +442,7 @@ def get_comments_by_post_id_api(post_id: int, session: Session = Depends(get_ses
     return post
 
 
-class LoingRequest(BaseModel):
+class LoginRequest(BaseModel):
     id: str
     password: str
 
@@ -451,7 +458,7 @@ user_tokens_cache = {}
     "/users/login", response_model=LoginResponse, status_code=status.HTTP_200_OK
 )
 def login(
-    request: LoingRequest, session: Session = Depends(get_session)
+    request: LoginRequest, session: Session = Depends(get_session)
 ) -> LoginResponse:
     user = session.get(User, request.id)
     if (user is None) or (user.password != request.password):
