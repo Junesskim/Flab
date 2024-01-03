@@ -12,6 +12,12 @@
 poetry install
 ```
 
+## Docker
+### Docker 실행
+```curl
+docker run -p 80:80 my-fastapi-app
+```
+
 ## API 요구사항
 ### 1. 게시글 생성 (Create Post)
 - POST 요청을 통해 새로운 게시글을 생성할 수 있습니다.
